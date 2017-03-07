@@ -14,7 +14,9 @@ class allEvent {
     
     public function route(){
         foreach($this->events as $event) {
-            $event->route();
+            if(method_exists($event,'route')){
+                $event->route();
+            }
         }
     }
 }
