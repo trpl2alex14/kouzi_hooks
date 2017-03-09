@@ -5,7 +5,11 @@ define ('BX24_SPAM_TITLE', 'СПАМ');
 define ('LEADSPAM_EVENT','ONCRMLEADUPDATE');
 
 class LeadSpam extends bx24core{
-   
+    public function __construct() {
+        parent::__construct();
+        $this->setToken(LEADSPAM_TOKEN);
+    }
+    
     public function route() {                
         if($this->getEvent() == LEADSPAM_EVENT){
             $data = $this->getData();
