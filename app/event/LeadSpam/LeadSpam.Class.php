@@ -11,7 +11,7 @@ class LeadSpam extends bx24core{
     }
     
     public function route() {                
-        if($this->getEvent() == LEADSPAM_EVENT){
+        if($this->getEvent() == LEADSPAM_EVENT){ 
             $data = $this->getData();
             $id = (isset($data['FIELDS']) && isset($data['FIELDS']['ID'])) ? $data['FIELDS']['ID'] : 0; 
             $this->log('LEADSPAM: Event ('.$this->getEvent().') ID('.$id.')');                
