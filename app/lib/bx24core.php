@@ -2,6 +2,7 @@
 
 class bx24core {
     private $log;
+    private $token;
     
     public function __construct() {
         $this->log = new webLog();
@@ -9,6 +10,10 @@ class bx24core {
     
     public function log($msg) {
         $this->log->info($msg);
+    }
+    
+    protected function setToken($token) {
+        $this->token = $token;
     }
     
     protected function checkAuth() {
@@ -59,9 +64,12 @@ class bx24core {
     }  
     
     protected function call($method, $params){
-            if(BX24_AUTH == 0 ){
+            if(BX24_AUTH == 0){
+                if($this->token==''){
+                    return array('error'=>'Not token Bx24!');
+                }
                 $domain = BX24_DOMEN;
-                $method = BX24_USER.'/'.BX24_TOKEN_REST.'/'.$method;
+                $method = BX24_USER.'/'.$this->token.'/'.$method;                
             }
             return $this->query("POST", BX24_PROTOCOL.$domain."/rest/".$method, $params, true);
     }
