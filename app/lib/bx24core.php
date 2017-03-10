@@ -21,7 +21,7 @@ class bx24core {
             $auth = $_REQUEST['auth'];
             $domain = isset($auth['domain']) ? $auth['domain']: '';
             $token  = isset($auth['application_token']) ? $auth['application_token']: '';
-            if($domain == BX24_DOMEN && $token == BX24_TOKEN){
+            if($domain == BX24_DOMEN && preg_match("/".$token."/i",$this->token)){
                 return true;
             }
         }
@@ -65,11 +65,8 @@ class bx24core {
     
     protected function call($method, $params){
             if(BX24_AUTH == 0){
-                if($this->token==''){
-                    return array('error'=>'Not token Bx24!');
-                }
                 $domain = BX24_DOMEN;
-                $method = BX24_USER.'/'.$this->token.'/'.$method;                
+                $method = BX24_USER.'/'.BX24_TOKEN_REST.'/'.$method;                
             }
             return $this->query("POST", BX24_PROTOCOL.$domain."/rest/".$method, $params, true);
     }
