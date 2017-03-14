@@ -82,9 +82,15 @@ class GANewLead extends bx24core{
                 'params'    => array( "REGISTER_SONET_EVENT" => "N" )
             );
             $this->call("crm.deal.update", $params);
-            $ga = new gaApiHit();
-            $ga->hit($gacid, $category, GANL_D_ACTION_S, GANL_D_LABEL_S);                    
-            $this->log('GANewLead: Send Google Analitics Event:Success CID:'.$gacid.' Category:'.$category);      
+            $ga = new gaApiHit();            
+            $trn = $this->getTransaction($id);
+            $profit = $this->getProfit($trn);
+            $ga->hit($gacid, $category, GANL_D_ACTION_S, GANL_D_LABEL_S,$profit);  
+            $ga->transaction($gacid, $id, 'КОУЗИ', $trn['price'], $trn['shipping'], $trn['cost']);
+            foreach ($trn['items'] as $item) {
+                $ga->item($gacid, $id, $item['name'], $item['price'], $item['count'], $item['articul']);
+            }
+            $this->log('GANewLead: Send Google Analitics Event:Success CID:'.$gacid.' Category:'.$category.' Profit:'.$profit);      
         }
     }
     
@@ -141,10 +147,9 @@ class GANewLead extends bx24core{
             'params'    => array( "REGISTER_SONET_EVENT" => "N" )
         );
         $this->call("crm.deal.update", $params);
-        $ga = new gaApiHit();
-        $profit = $this->getProfit();
-        $ga->hit($gacid, $category, GANL_D_ACTION, GANL_D_LABEL, $profit);                    
-        $this->log('GANewLead: Send Google Analitics Event:Deal CID:'.$gacid.' Category:'.$category.' Profit:'.$profit);                                        
+        $ga = new gaApiHit();        
+        $ga->hit($gacid, $category, GANL_D_ACTION, GANL_D_LABEL);                    
+        $this->log('GANewLead: Send Google Analitics Event:Deal CID:'.$gacid.' Category:'.$category);                                        
     }
     
     private function getProductsDeal($id){        
@@ -153,7 +158,8 @@ class GANewLead extends bx24core{
         $call = $this->call("crm.deal.productrows.get", array('id' => $id));
         if(isset($call['result'])){
             $index = 0;
-            foreach($call['result'] as $item){
+            foreach($call['result'] as $item){                
+                $products[$item['PRODUCT_ID']]["name"] = $item['PRODUCT_NAME'];
                 $products[$item['PRODUCT_ID']]["price"] = $item['PRICE'];
                 $products[$item['PRODUCT_ID']]["count"] = $item['QUANTITY'];
                 $buff[$index] = 'crm.product.get?'.http_build_query(array("id" => $item['PRODUCT_ID']));
@@ -173,10 +179,20 @@ class GANewLead extends bx24core{
         return $products;
     }
 
-    private function getProfit(){                
+    private function getProfit($param){
+        if(is_object($param)||  is_array($param)){
+            return $param['profit'];
+        }else{
+            $param = $this->getTransaction($param);
+            return $param['profit'];
+        }        
+    }
+    
+    private function getTransaction($id){                
         $total_price = 0;
         $total_cost = 0;
-        $pd_list = $this->getProductsDeal(2040);
+        $shipping = 0;
+        $pd_list = $this->getProductsDeal($id);
         if(count($pd_list)>0){
             $prices = array();
             $articul_list = array();
@@ -189,9 +205,18 @@ class GANewLead extends bx24core{
             foreach ($prices as $articul => $value) {
                 $total_cost += ((isset($cost_list[$articul]) && $cost_list[$articul]['cost']>0)? $cost_list[$articul]['cost'] : $value['price'])*$value['count'];
                 $total_price += $value['price']*$value['count'];
+                if($articul == GANL_ART_SHIPPING){
+                    $shipping += $value['price']*$value['count'];
+                }
             }            
         }               
-        return $total_price-$total_cost;
+        return array(
+                    'profit' => $total_price-$total_cost,
+                    'price'  => $total_price,
+                    'cost'   => $total_cost,
+                    'shipping' => $shipping,
+                    'items'    => $pd_list
+                );
     }
 
     public function route() {   
@@ -205,8 +230,10 @@ class GANewLead extends bx24core{
             case GANEWDEAL_EVENT_UPDATE:
                 $this->successDeal();
             break;            
-            case 'ERROR':
-                var_dump($this->getProfit());
+            case 'ERROR':                
+                $trn = $this->getTransaction(1840);
+                $profit = $this->getProfit($trn);
+                var_dump($profit);
             break;           
         }
     }    

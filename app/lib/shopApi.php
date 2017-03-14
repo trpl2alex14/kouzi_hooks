@@ -34,11 +34,14 @@ class shopApi {
         if(!is_array($id_list)){
             $id_list = array($id_list);
         }
-        //test        
-        return array(
-            '30211' => array("price" => 5200,"cost"  => 3500),
-            '40411' => array("price" => 6900,"cost"  => 5100),
-            '1' => array("price" => 0,"cost"  => 0)
-        );
+        $data = array();
+        $res = $this->link->query("SELECT articul,price,cost FROM products WHERE articul IN (".implode(',', $id_list).")");  
+        if (!$this->link->errno){
+            $res->data_seek(0);
+            while ($row = $res->fetch_assoc()) {
+                $data[$row['articul']] = array("price" => (int)$row['price'],"cost"  => (int)$row['cost']);
+            }                         
+        }
+        return $data;
     }
 }

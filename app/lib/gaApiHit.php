@@ -44,4 +44,47 @@ class gaApiHit {
         }
         $this->call($data);
     }
+    
+    public function transaction($cid,$order_id,$shop_name,$revenue,$shipping=null,$tax=null){
+        $data = array(
+            'v'  => '1',
+            'tid'=> GA_TRACER,
+            'cid'=>$cid,
+            't'=>'transaction',
+            'ti'=>$order_id,
+            'ta'=>$shop_name,
+            'tr'=>$revenue            
+        );
+        if($shipping){
+            $data['ts']=$shipping;
+        }
+        if($tax){
+            $data['tt']=$tax;
+        }
+        $this->call($data);        
+    }
+    
+    public function item($cid,$order_id,$name,$price=null,$quantity=null,$sku=null,$category=null){
+        $data = array(
+            'v'  => '1',
+            'tid'=> GA_TRACER,
+            'cid'=>$cid,
+            't'=>'item',
+            'ti'=>$order_id,
+            'in'=>$name            
+        );
+        if($sku){
+            $data['ic']=$sku;
+        }
+        if($category){
+            $data['iv']=$category;
+        }
+        if($price){
+            $data['ip']=$price;
+        }
+        if($quantity){
+            $data['iq']=$quantity;
+        }        
+        $this->call($data);        
+    }    
 }
