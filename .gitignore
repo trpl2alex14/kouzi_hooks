@@ -1,3 +1,5 @@
 /app/config.php
 /app/tmp/
 /app/config.db.php
+/app/lib/bx24/bx24key.json
+/app/bizproc.php

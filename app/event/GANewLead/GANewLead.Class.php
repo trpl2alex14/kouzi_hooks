@@ -230,10 +230,9 @@ class GANewLead extends bx24core{
             case GANEWDEAL_EVENT_UPDATE:
                 $this->successDeal();
             break;            
-            case 'ERROR':                
-                $trn = $this->getTransaction(1840);
-                $profit = $this->getProfit($trn);
-                var_dump($profit);
+            case 'ERROR':                                
+                var_dump($this->call('scope', array()));
+                var_dump('error');
             break;           
         }
     }    

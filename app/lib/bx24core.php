@@ -1,11 +1,13 @@
 <?php
 
-class bx24core {
+class bx24core{
     private $log;
+    private $req;
     private $token;
     
     public function __construct() {
         $this->log = new webLog();
+        $this->req = new bx24req(BX24_AUTH);
     }
     
     public function log($msg) {
@@ -40,34 +42,9 @@ class bx24core {
             return $_REQUEST['event'];
         }
         return 'ERROR';
+    }     
+    
+    public function call($method, $params){
+        return $this->req->call($method, $params);
     }    
-    
-    private function query($method, $url, $data = null, $jsonDecode = false){
-            $curlOptions = array(
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => false
-            );
-
-            if($method == "POST"){
-                    $curlOptions[CURLOPT_POST] = true;
-                    $curlOptions[CURLOPT_POSTFIELDS] = http_build_query($data);
-            }
-            elseif(!empty($data)){
-                    $url .= strpos($url, "?") > 0 ? "&" : "?";
-                    $url .= http_build_query($data);
-            }
-            $curl = curl_init($url);
-            curl_setopt_array($curl, $curlOptions);
-            $result = curl_exec($curl);
-            return ($jsonDecode ? json_decode($result, 1) : $result);
-    }  
-    
-    protected function call($method, $params){
-            if(BX24_AUTH == 0){
-                $domain = BX24_DOMEN;
-                $method = BX24_USER.'/'.BX24_TOKEN_REST.'/'.$method;                
-            }
-            return $this->query("POST", BX24_PROTOCOL.$domain."/rest/".$method, $params, true);
-    }
 }

@@ -8,6 +8,11 @@ class autoLoad{
             $filePath = (defined('EVENT_DIR')? EVENT_DIR : dirname(__FILE__) . '/event/') .  $className . '/' . $className . '.Class.php';
             if (file_exists($filePath)) {
               require_once($filePath);
+            }else{
+                $filePath = (defined('BIZPROC_DIR')? BIZPROC_DIR : dirname(__FILE__) . '/bizproc/') .  $className . '/' . $className . '.class.php';                
+                if (file_exists($filePath)) {
+                  require_once($filePath);
+                }                
             }            
         }                
     }
