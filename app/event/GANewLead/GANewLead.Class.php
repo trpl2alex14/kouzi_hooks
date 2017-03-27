@@ -95,7 +95,7 @@ class GANewLead extends bx24core{
     }
     
     
-    private function eventLead(){
+    private function eventLead(){        
         $data = $this->getData();
         $id = (isset($data['FIELDS']) && isset($data['FIELDS']['ID'])) ? $data['FIELDS']['ID'] : 0; 
         $this->log('GANewLead: Event ('.$this->getEvent().') ID('.$id.')');                            
