@@ -86,9 +86,9 @@ class GANewLead extends bx24core{
             $trn = $this->getTransaction($id);
             $profit = $this->getProfit($trn);
             $ga->hit($gacid, $category, GANL_D_ACTION_S, GANL_D_LABEL_S,$profit);  
-            $ga->transaction($gacid, $id, 'КОУЗИ', $trn['price'], $trn['shipping'], $trn['cost']);
+            $ga->transaction($gacid, $id, 'КОУЗИ', $trn['price']-$trn['cost'], $trn['shipping'], 0);
             foreach ($trn['items'] as $item) {
-                $ga->item($gacid, $id, $item['name'], $item['price'], $item['count'], $item['articul']);
+                $ga->item($gacid, $id, $item['name'], $item['price']-$item['cost'], $item['count'], $item['articul']);
             }
             $this->log('GANewLead: Send Google Analitics Event:Success CID:'.$gacid.' Category:'.$category.' Profit:'.$profit);      
         }
@@ -196,14 +196,16 @@ class GANewLead extends bx24core{
         if(count($pd_list)>0){
             $prices = array();
             $articul_list = array();
-            foreach ($pd_list as $item) {
-                $prices[$item['articul']] = array('price' => $item['price'], 'count' => $item['count']);
+            foreach ($pd_list as $id => $item) {
+                $prices[$item['articul']] = array('price' => $item['price'], 'count' => $item['count'], 'id' => $id);
                 $articul_list[] = $item['articul'];
             }
             $shop = shopApi::getInstance();
             $cost_list = $shop->getProducts($articul_list);
             foreach ($prices as $articul => $value) {
-                $total_cost += ((isset($cost_list[$articul]) && $cost_list[$articul]['cost']>0)? $cost_list[$articul]['cost'] : $value['price'])*$value['count'];
+                $itm_cost = (isset($cost_list[$articul]) && $cost_list[$articul]['cost']>0)? $cost_list[$articul]['cost'] : $value['price'];
+                $pd_list[$value['id']]['cost'] = $itm_cost;
+                $total_cost += $itm_cost*$value['count'];
                 $total_price += $value['price']*$value['count'];
                 if($articul == GANL_ART_SHIPPING){
                     $shipping += $value['price']*$value['count'];
@@ -231,7 +233,8 @@ class GANewLead extends bx24core{
                 $this->successDeal();
             break;            
             case 'ERROR':                                
-                var_dump($this->call('scope', array()));
+                //var_dump($this->call('scope', array()));
+                var_dump($this->getTransaction(2128));
                 var_dump('error');
             break;           
         }
